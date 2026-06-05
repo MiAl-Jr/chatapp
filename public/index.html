@@ -14,44 +14,59 @@
 }
         body {
             font-family: Arial;
-            max-width: 500px;
+            display: flex;
+            max-width: 800px;
             margin: auto;
+        }
+
+        #left {
+            width: 30%;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        #right {
+            width: 70%;
+            padding: 10px;
         }
 
         #messages {
             list-style: none;
             padding: 0;
-        }
-
-        #messages li {
-            padding: 5px;
+            height: 300px;
+            overflow-y: scroll;
         }
 
         #typing {
             color: gray;
-            font-size: 13px;
+            font-size: 12px;
             height: 20px;
         }
 
-        input {
-            width: 70%;
-            padding: 8px;
-        }
-
-        button {
-            padding: 8px;
+        .online {
+            color: green;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<h2>GITHUB</h2>
+<!-- LEFT: ONLINE USERS -->
+<div id="left">
+    <h3>Online Users 🟢</h3>
+    <ul id="users"></ul>
+</div>
 
-<ul id="messages"></ul>
-<p id="typing"></p>
+<!-- RIGHT: CHAT -->
+<div id="right">
+    <h2>Chat</h2>
 
-<input id="input" placeholder="Type message..." autocomplete="off" />
-<button id="sendBtn">Send</button>
+    <ul id="messages"></ul>
+    <p id="typing"></p>
+
+    <input id="input" placeholder="Type message..." />
+    <button onclick="send()">Send</button>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -60,13 +75,15 @@
     const input = document.getElementById("input");
     const messages = document.getElementById("messages");
     const typingBox = document.getElementById("typing");
-    const sendBtn = document.getElementById("sendBtn");
+    const usersBox = document.getElementById("users");
 
     let name = prompt("Enter your name:");
+    socket.emit("join", name);
+
     let typingTimeout;
 
-    // SEND MESSAGE FUNCTION
-    function sendMessage() {
+    // SEND MESSAGE
+    function send() {
         if (input.value.trim() !== "") {
             socket.emit("chat message", name + ": " + input.value);
             input.value = "";
@@ -74,15 +91,9 @@
         }
     }
 
-    // BUTTON CLICK SEND
-    sendBtn.addEventListener("click", sendMessage);
-
-    // ⭐ ENTER KEY SEND (NEW FEATURE)
+    // ENTER KEY SEND
     input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            sendMessage();
-        }
+        if (e.key === "Enter") send();
     });
 
     // RECEIVE MESSAGE
@@ -116,12 +127,22 @@
     });
 
     function updateTyping() {
-        if (typingUsers.size === 0) {
-            typingBox.textContent = "";
-        } else {
-            typingBox.textContent = [...typingUsers].join(", ") + " is typing...";
-        }
+        typingBox.textContent =
+            typingUsers.size > 0
+                ? [...typingUsers].join(", ") + " typing..."
+                : "";
     }
+
+    // 🟢 ONLINE USERS LIST (NEW FEATURE)
+    socket.on("user list", (users) => {
+        usersBox.innerHTML = "";
+
+        users.forEach(u => {
+            const li = document.createElement("li");
+            li.textContent = "🟢 " + u;
+            usersBox.appendChild(li);
+        });
+    });
 </script>
 
 </body>
