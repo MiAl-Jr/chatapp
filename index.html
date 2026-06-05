@@ -1,0 +1,50 @@
+<script>
+
+const socket = io();
+
+const input = document.getElementById("message");
+
+input.addEventListener("input", () => {
+
+    socket.emit("typing");
+
+});
+
+function sendMessage(){
+
+    if(input.value.trim() !== ""){
+
+        socket.emit("chat message", input.value);
+
+        input.value = "";
+
+    }
+
+}
+
+socket.on("chat message",(msg)=>{
+
+    const li = document.createElement("li");
+
+    li.textContent = msg;
+
+    document.getElementById("messages").appendChild(li);
+
+});
+
+socket.on("typing", () => {
+
+    document.getElementById("typing").innerText =
+    "Someone is typing...";
+
+    clearTimeout(window.typingTimeout);
+
+    window.typingTimeout = setTimeout(() => {
+
+        document.getElementById("typing").innerText = "";
+
+    }, 1000);
+
+});
+
+</script>

@@ -12,6 +12,11 @@ io.on("connection", (socket) => {
     });
 
     console.log("User connected");
+    socket.on("typing", () => {
+
+        socket.broadcast.emit("typing");
+
+    });
 
     socket.on("chat message", (msg) => {
 
