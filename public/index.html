@@ -143,6 +143,18 @@
             usersBox.appendChild(li);
         });
     });
+    let lastTap = 0;
+
+document.addEventListener("click", () => {
+    const now = Date.now();
+
+    if (now - lastTap < 300) {
+        alert("Exiting chat...");
+        window.location.reload(); // or redirect to another page
+    }
+
+    lastTap = now;
+});
 </script>
 
 </body>
