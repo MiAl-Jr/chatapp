@@ -1,17 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GITHUB</title>
+    <title>My Chat App</title>
     <style>
-        body {
-    font-family: Arial;
-    max-width: 500px;
-    margin: auto;
-    background: url("https://images.alphacoders.com/137/thumb-1920-1370166.png");
-    background-size: cover;
-    background-position: center;
-    color: white;
-}
         body {
             font-family: Arial;
             display: flex;
@@ -65,12 +56,7 @@
     <p id="typing"></p>
 
     <input id="input" placeholder="Type message..." />
-
-<button onclick="send()">Send</button>
-
-<button onclick="clearChat()">
-    Clear Chat
-</button>
+    <button onclick="send()">Send</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -164,18 +150,6 @@ socket.on("special user joined", (name) => {
             usersBox.appendChild(li);
         });
     });
-    let lastTap = 0;
-
-document.addEventListener("click", () => {
-    const now = Date.now();
-
-    if (now - lastTap < 300) {
-        alert("Exiting chat...");
-        window.location.reload(); // or redirect to another page
-    }
-
-    lastTap = now;
-});
     function clearChat() {
 
     // clear all chat messages

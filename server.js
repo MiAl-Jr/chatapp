@@ -8,43 +8,24 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let users = {};
-const fixedUser = "Admin"; // special tracked name
+let users = {}; // socket.id -> name
 
 io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
 
-    // USER JOIN
+    // when user joins
     socket.on("join", (name) => {
-
         users[socket.id] = name;
 
-        // update online users
-        io.emit("user list", Object.values(users));
-
-        // 🚨 notify everyone if fixed user joins
-        if (name === fixedUser) {
-            io.emit("special user joined", name);
-        }
+        io.emit("user list", Object.values(users)); // update all users
     });
 
-    // CHAT MESSAGE
-    socket.on("chat message", (data) => {
-
-        io.emit("chat message", {
-            msg: data.msg,
-            id: data.id,
-            name: data.name
-        });
-
-        socket.broadcast.emit("message delivered", data.id);
+    // chat message
+    socket.on("chat message", (msg) => {
+        io.emit("chat message", msg);
     });
 
-    // MESSAGE SEEN
-    socket.on("message seen", (id) => {
-        io.emit("message seen", id);
-    });
-
-    // TYPING
+    // typing
     socket.on("typing", (name) => {
         socket.broadcast.emit("typing", name);
     });
@@ -53,7 +34,7 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("stop typing", name);
     });
 
-    // DISCONNECT
+    // disconnect = offline
     socket.on("disconnect", () => {
         delete users[socket.id];
         io.emit("user list", Object.values(users));
