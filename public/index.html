@@ -88,6 +88,7 @@ NovaChat
 </div>
 
 <ul id="messages"></ul>
+<ul id="ruk ja likh rha hu!!"></div>
 
 <div class="bottom">
 <input id="message" placeholder="Type message...">
@@ -99,8 +100,29 @@ NovaChat
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
+socket.on("ruk ja likh raha hu", () => {
+
+    document.getElementById("typing").innerText =
+    "Someone is typing...";
+
+    clearTimeout(window.typingTimeout);
+
+    window.typingTimeout = setTimeout(() => {
+
+        document.getElementById("typing").innerText = "";
+
+    }, 1000);
+
+});
 
 const socket = io();
+const input = document.getElementById("message");
+
+input.addEventListener("input", () => {
+
+    socket.emit("typing");
+
+});
 
 function sendMessage(){
 

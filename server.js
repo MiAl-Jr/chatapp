@@ -7,6 +7,9 @@ const io = require("socket.io")(http);
 app.use(express.static("public"));
 
 io.on("connection", (socket) => {
+    socket.on("ruk ja likh rha hu!!", () => {
+           socket.broadcast.emit("ruk ja likh rha hu!!");
+    });
 
     console.log("User connected");
 
