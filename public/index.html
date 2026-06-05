@@ -1,37 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chat App</title>
+    <title>NovaChat</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Arial;
+    background: linear-gradient(135deg,#141e30,#243b55);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.chat-box{
+    width:400px;
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+    box-shadow:0 0 20px rgba(0,0,0,0.4);
+}
+
+.header{
+    background:#0f172a;
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+}
+
+#messages{
+    list-style:none;
+    padding:20px;
+    height:350px;
+    overflow-y:auto;
+    margin:0;
+}
+
+#messages li{
+    background:#e2e8f0;
+    margin-bottom:10px;
+    padding:10px;
+    border-radius:10px;
+}
+
+.bottom{
+    display:flex;
+    padding:10px;
+    background:#f1f5f9;
+}
+
+#message{
+    flex:1;
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    outline:none;
+}
+
+button{
+    margin-left:10px;
+    padding:10px 20px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+</style>
+
 </head>
+
 <body>
 
-<h2>Realtime Chat</h2>
+<div class="chat-box">
+
+<div class="header">
+NovaChat
+</div>
 
 <ul id="messages"></ul>
 
-<input id="message" placeholder="Type message">
+<div class="bottom">
+<input id="message" placeholder="Type message...">
 <button onclick="sendMessage()">Send</button>
+</div>
+
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
+
 const socket = io();
 
-function sendMessage() {
+function sendMessage(){
+
     const input = document.getElementById("message");
 
-    socket.emit("chat message", input.value);
+    if(input.value.trim() !== ""){
 
-    input.value = "";
+        socket.emit("chat message", input.value);
+
+        input.value = "";
+    }
 }
 
-socket.on("chat message", (msg) => {
+socket.on("chat message",(msg)=>{
+
     const li = document.createElement("li");
 
     li.textContent = msg;
 
     document.getElementById("messages").appendChild(li);
+
 });
+
 </script>
 
 </body>
