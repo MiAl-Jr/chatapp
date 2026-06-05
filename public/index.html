@@ -51,7 +51,7 @@
 <p id="typing"></p>
 
 <input id="input" placeholder="Type message..." autocomplete="off" />
-<button onclick="send()">Send</button>
+<button id="sendBtn">Send</button>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
@@ -60,18 +60,30 @@
     const input = document.getElementById("input");
     const messages = document.getElementById("messages");
     const typingBox = document.getElementById("typing");
+    const sendBtn = document.getElementById("sendBtn");
 
     let name = prompt("Enter your name:");
     let typingTimeout;
 
-    // SEND MESSAGE
-    function send() {
+    // SEND MESSAGE FUNCTION
+    function sendMessage() {
         if (input.value.trim() !== "") {
             socket.emit("chat message", name + ": " + input.value);
             input.value = "";
             socket.emit("stop typing", name);
         }
     }
+
+    // BUTTON CLICK SEND
+    sendBtn.addEventListener("click", sendMessage);
+
+    // ⭐ ENTER KEY SEND (NEW FEATURE)
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 
     // RECEIVE MESSAGE
     socket.on("chat message", (msg) => {
@@ -80,7 +92,7 @@
         messages.appendChild(li);
     });
 
-    // TYPING EVENT
+    // TYPING
     input.addEventListener("input", () => {
         socket.emit("typing", name);
 
@@ -91,7 +103,6 @@
         }, 800);
     });
 
-    // SHOW TYPING
     let typingUsers = new Set();
 
     socket.on("typing", (user) => {
