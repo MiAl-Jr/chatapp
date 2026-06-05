@@ -1,67 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chat App</title>
-
+    <title>GITHUB</title>
     <style>
+        body {
+    font-family: Arial;
+    max-width: 500px;
+    margin: auto;
+    background: url("https://images.alphacoders.com/137/thumb-1920-1370166.png");
+    background-size: cover;
+    background-position: center;
+    color: white;
+}
         body {
             font-family: Arial;
             display: flex;
-            max-width: 900px;
+            max-width: 800px;
             margin: auto;
         }
 
-        #users {
-            width: 25%;
+        #left {
+            width: 30%;
             border-right: 1px solid #ccc;
             padding: 10px;
         }
 
-        #chat {
-            width: 75%;
+        #right {
+            width: 70%;
             padding: 10px;
         }
 
         #messages {
             list-style: none;
             padding: 0;
-            height: 350px;
-            overflow-y: auto;
-        }
-
-        #messages li {
-            background: #f2f2f2;
-            margin-bottom: 5px;
-            padding: 6px;
-            border-radius: 5px;
-        }
-
-        .status {
-            font-size: 10px;
-            color: gray;
+            height: 300px;
+            overflow-y: scroll;
         }
 
         #typing {
-            font-size: 12px;
             color: gray;
+            font-size: 12px;
             height: 20px;
         }
 
         .online {
             color: green;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<!-- USERS -->
-<div id="users">
-    <h3>Online 🟢</h3>
-    <ul id="userList"></ul>
+<!-- LEFT: ONLINE USERS -->
+<div id="left">
+    <h3>Online Users 🟢</h3>
+    <ul id="users"></ul>
 </div>
 
-<!-- CHAT -->
-<div id="chat">
+<!-- RIGHT: CHAT -->
+<div id="right">
     <h2>Chat</h2>
 
     <ul id="messages"></ul>
@@ -78,76 +75,32 @@
     const input = document.getElementById("input");
     const messages = document.getElementById("messages");
     const typingBox = document.getElementById("typing");
-    const userList = document.getElementById("userList");
+    const usersBox = document.getElementById("users");
 
     let name = prompt("Enter your name:");
     socket.emit("join", name);
 
-    let messageId = 0;
     let typingTimeout;
 
     // SEND MESSAGE
     function send() {
         if (input.value.trim() !== "") {
-
-            const id = Date.now() + "-" + messageId++;
-
-            socket.emit("chat message", {
-                msg: input.value,
-                id: id,
-                name: name
-            });
-
-            addMessage(name, input.value, id, "sent");
-
+            socket.emit("chat message", name + ": " + input.value);
             input.value = "";
             socket.emit("stop typing", name);
         }
     }
 
-    // ENTER KEY
+    // ENTER KEY SEND
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") send();
     });
 
-    // ADD MESSAGE
-    function addMessage(sender, text, id, status) {
-        const li = document.createElement("li");
-
-        li.innerHTML = 
-            <b>${sender}:</b> ${text}
-            <div class="status" id="status-${id}">
-                ${getStatus(status)}
-            </div>
-        ;
-
-        messages.appendChild(li);
-    }
-
-    function getStatus(status) {
-        if (status === "sent") return "✓ Sent";
-        if (status === "delivered") return "✓✓ Delivered";
-        if (status === "seen") return "✓✓ Seen";
-        return "";
-    }
-
     // RECEIVE MESSAGE
-    socket.on("chat message", (data) => {
-        addMessage(data.name, data.msg, data.id, "delivered");
-
-        socket.emit("message seen", data.id);
-    });
-
-    // DELIVERED
-    socket.on("message delivered", (id) => {
-        const el = document.getElementById("status-" + id);
-        if (el) el.innerText = "✓✓ Delivered";
-    });
-
-    // SEEN
-    socket.on("message seen", (id) => {
-        const el = document.getElementById("status-" + id);
-        if (el) el.innerText = "✓✓ Seen";
+    socket.on("chat message", (msg) => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        messages.appendChild(li);
     });
 
     // TYPING
@@ -179,14 +132,15 @@
                 ? [...typingUsers].join(", ") + " typing..."
                 : "";
     }
-// ONLINE USERS
+
+    // 🟢 ONLINE USERS LIST (NEW FEATURE)
     socket.on("user list", (users) => {
-        userList.innerHTML = "";
+        usersBox.innerHTML = "";
 
         users.forEach(u => {
             const li = document.createElement("li");
-            li.innerHTML = "🟢 " + u;
-            userList.appendChild(li);
+            li.textContent = "🟢 " + u;
+            usersBox.appendChild(li);
         });
     });
 </script>
