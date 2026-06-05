@@ -75,6 +75,22 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+    // ask notification permission
+if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+}
+
+// receive admin alert
+socket.on("special user joined", (name) => {
+
+    // browser notification
+    if (Notification.permission === "granted") {
+        new Notification("Chat Alert", {
+            body: name + " joined the chat!"
+        });
+    }
+
+});
     const socket = io();
 
     const input = document.getElementById("input");
