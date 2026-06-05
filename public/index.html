@@ -65,7 +65,12 @@
     <p id="typing"></p>
 
     <input id="input" placeholder="Type message..." />
-    <button onclick="send()">Send</button>
+
+<button onclick="send()">Send</button>
+
+<button onclick="clearChat()">
+    Clear Chat
+</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -155,6 +160,17 @@ document.addEventListener("click", () => {
 
     lastTap = now;
 });
+    function clearChat() {
+
+    // clear all chat messages
+    messages.innerHTML = "";
+
+    // optional popup
+    alert("Chat cleared!");
+
+    // redirect to YouTube
+    window.location.href = "https://youtube.com";
+}
 </script>
 
 </body>
