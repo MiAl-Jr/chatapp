@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>GITHUB</title>
+
     <style>
         body {
     font-family: Arial;
@@ -15,50 +16,61 @@
         body {
             font-family: Arial;
             display: flex;
-            max-width: 800px;
+            max-width: 900px;
             margin: auto;
         }
 
-        #left {
-            width: 30%;
+        #users {
+            width: 25%;
             border-right: 1px solid #ccc;
             padding: 10px;
         }
 
-        #right {
-            width: 70%;
+        #chat {
+            width: 75%;
             padding: 10px;
         }
 
         #messages {
             list-style: none;
             padding: 0;
-            height: 300px;
-            overflow-y: scroll;
+            height: 350px;
+            overflow-y: auto;
+        }
+
+        #messages li {
+            background: #f2f2f2;
+            margin-bottom: 5px;
+            padding: 6px;
+            border-radius: 5px;
+        }
+
+        .status {
+            font-size: 10px;
+            color: gray;
         }
 
         #typing {
-            color: gray;
             font-size: 12px;
+            color: gray;
             height: 20px;
         }
 
         .online {
             color: green;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<!-- LEFT: ONLINE USERS -->
-<div id="left">
-    <h3>Online Users 🟢</h3>
-    <ul id="users"></ul>
+<!-- USERS -->
+<div id="users">
+    <h3>Online 🟢</h3>
+    <ul id="userList"></ul>
 </div>
 
-<!-- RIGHT: CHAT -->
-<div id="right">
+<!-- CHAT -->
+<div id="chat">
     <h2>Chat</h2>
 
     <ul id="messages"></ul>
@@ -75,32 +87,76 @@
     const input = document.getElementById("input");
     const messages = document.getElementById("messages");
     const typingBox = document.getElementById("typing");
-    const usersBox = document.getElementById("users");
+    const userList = document.getElementById("userList");
 
     let name = prompt("Enter your name:");
     socket.emit("join", name);
 
+    let messageId = 0;
     let typingTimeout;
 
     // SEND MESSAGE
     function send() {
         if (input.value.trim() !== "") {
-            socket.emit("chat message", name + ": " + input.value);
+
+            const id = Date.now() + "-" + messageId++;
+
+            socket.emit("chat message", {
+                msg: input.value,
+                id: id,
+                name: name
+            });
+
+            addMessage(name, input.value, id, "sent");
+
             input.value = "";
             socket.emit("stop typing", name);
         }
     }
 
-    // ENTER KEY SEND
+    // ENTER KEY
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") send();
     });
 
-    // RECEIVE MESSAGE
-    socket.on("chat message", (msg) => {
+    // ADD MESSAGE
+    function addMessage(sender, text, id, status) {
         const li = document.createElement("li");
-        li.textContent = msg;
+
+        li.innerHTML = 
+            <b>${sender}:</b> ${text}
+            <div class="status" id="status-${id}">
+                ${getStatus(status)}
+            </div>
+        ;
+
         messages.appendChild(li);
+    }
+
+    function getStatus(status) {
+        if (status === "sent") return "✓ Sent";
+        if (status === "delivered") return "✓✓ Delivered";
+        if (status === "seen") return "✓✓ Seen";
+        return "";
+    }
+
+    // RECEIVE MESSAGE
+    socket.on("chat message", (data) => {
+        addMessage(data.name, data.msg, data.id, "delivered");
+
+        socket.emit("message seen", data.id);
+    });
+
+    // DELIVERED
+    socket.on("message delivered", (id) => {
+        const el = document.getElementById("status-" + id);
+        if (el) el.innerText = "✓✓ Delivered";
+    });
+
+    // SEEN
+    socket.on("message seen", (id) => {
+        const el = document.getElementById("status-" + id);
+        if (el) el.innerText = "✓✓ Seen";
     });
 
     // TYPING
@@ -132,15 +188,14 @@
                 ? [...typingUsers].join(", ") + " typing..."
                 : "";
     }
-
-    // 🟢 ONLINE USERS LIST (NEW FEATURE)
+// ONLINE USERS
     socket.on("user list", (users) => {
-        usersBox.innerHTML = "";
+        userList.innerHTML = "";
 
         users.forEach(u => {
             const li = document.createElement("li");
-            li.textContent = "🟢 " + u;
-            usersBox.appendChild(li);
+            li.innerHTML = "🟢 " + u;
+            userList.appendChild(li);
         });
     });
 </script>

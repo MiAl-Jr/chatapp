@@ -11,21 +11,33 @@ app.use(express.static("public"));
 let users = {}; // socket.id -> name
 
 io.on("connection", (socket) => {
-    console.log("User connected:", socket.id);
 
-    // when user joins
+    // JOIN USER
     socket.on("join", (name) => {
         users[socket.id] = name;
-
-        io.emit("user list", Object.values(users)); // update all users
+        io.emit("user list", Object.values(users));
     });
 
-    // chat message
-    socket.on("chat message", (msg) => {
-        io.emit("chat message", msg);
+    // CHAT MESSAGE
+    socket.on("chat message", (data) => {
+        // data = { msg, id, name }
+
+        io.emit("chat message", {
+            msg: data.msg,
+            id: data.id,
+            name: data.name
+        });
+
+        // delivered to others
+        socket.broadcast.emit("message delivered", data.id);
     });
 
-    // typing
+    // SEEN
+    socket.on("message seen", (id) => {
+        io.emit("message seen", id);
+    });
+
+    // TYPING
     socket.on("typing", (name) => {
         socket.broadcast.emit("typing", name);
     });
@@ -34,7 +46,7 @@ io.on("connection", (socket) => {
         socket.broadcast.emit("stop typing", name);
     });
 
-    // disconnect = offline
+    // DISCONNECT
     socket.on("disconnect", () => {
         delete users[socket.id];
         io.emit("user list", Object.values(users));
