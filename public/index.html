@@ -3,18 +3,45 @@
 <head>
     <title>Chat App</title>
     <style>
-        body { font-family: Arial; }
-        #messages { list-style: none; padding: 0; }
-        #messages li { padding: 5px; }
-        #typing { color: gray; font-size: 12px; }
+        body {
+            font-family: Arial;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        #messages {
+            list-style: none;
+            padding: 0;
+        }
+
+        #messages li {
+            padding: 5px;
+        }
+
+        #typing {
+            color: gray;
+            font-size: 13px;
+            height: 20px;
+        }
+
+        input {
+            width: 70%;
+            padding: 8px;
+        }
+
+        button {
+            padding: 8px;
+        }
     </style>
 </head>
 <body>
 
+<h2>Chat App</h2>
+
 <ul id="messages"></ul>
 <p id="typing"></p>
 
-<input id="input" autocomplete="off" placeholder="Type message..." />
+<input id="input" placeholder="Type message..." autocomplete="off" />
 <button onclick="send()">Send</button>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -23,44 +50,58 @@
 
     const input = document.getElementById("input");
     const messages = document.getElementById("messages");
-    const typing = document.getElementById("typing");
+    const typingBox = document.getElementById("typing");
 
     let name = prompt("Enter your name:");
+    let typingTimeout;
 
-    // send message
+    // SEND MESSAGE
     function send() {
         if (input.value.trim() !== "") {
             socket.emit("chat message", name + ": " + input.value);
             input.value = "";
+            socket.emit("stop typing", name);
         }
     }
 
-    // receive message
+    // RECEIVE MESSAGE
     socket.on("chat message", (msg) => {
         const li = document.createElement("li");
         li.textContent = msg;
         messages.appendChild(li);
     });
 
-    // typing logic
-    let typingTimeout;
-
+    // TYPING EVENT
     input.addEventListener("input", () => {
         socket.emit("typing", name);
 
         clearTimeout(typingTimeout);
+
         typingTimeout = setTimeout(() => {
-            socket.emit("stop typing");
-        }, 1000);
+            socket.emit("stop typing", name);
+        }, 800);
     });
 
-    socket.on("typing", (name) => {
-        typing.textContent = name + " is typing...";
+    // SHOW TYPING
+    let typingUsers = new Set();
+
+    socket.on("typing", (user) => {
+        typingUsers.add(user);
+        updateTyping();
     });
 
-    socket.on("stop typing", () => {
-        typing.textContent = "";
+    socket.on("stop typing", (user) => {
+        typingUsers.delete(user);
+        updateTyping();
     });
+
+    function updateTyping() {
+        if (typingUsers.size === 0) {
+            typingBox.textContent = "";
+        } else {
+            typingBox.textContent = [...typingUsers].join(", ") + " is typing...";
+        }
+    }
 </script>
 
 </body>

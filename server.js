@@ -16,17 +16,17 @@ io.on("connection", (socket) => {
         io.emit("chat message", msg);
     });
 
-    // typing event
-    socket.on("typing", (name) => {
-        socket.broadcast.emit("typing", name);
+    // typing event (send user name + id)
+    socket.on("typing", (data) => {
+        socket.broadcast.emit("typing", data);
     });
 
-    socket.on("stop typing", () => {
-        socket.broadcast.emit("stop typing");
+    socket.on("stop typing", (data) => {
+        socket.broadcast.emit("stop typing", data);
     });
 
     socket.on("disconnect", () => {
-        console.log("User disconnected");
+        console.log("User disconnected:", socket.id);
     });
 });
 
